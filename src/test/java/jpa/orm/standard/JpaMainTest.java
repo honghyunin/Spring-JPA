@@ -1,10 +1,8 @@
 package jpa.orm.standard;
 
-import jpa.orm.standard.domain.Member;
-import jpa.orm.standard.domain.Movie;
-import jpa.orm.standard.domain.Team;
+import jpa.orm.standard.domain.*;
+import jpa.orm.standard.embedded.Address;
 import jpa.orm.standard.repository.TeamRepository;
-import jpa.orm.standard.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 
+import javax.persistence.Embeddable;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.util.List;
@@ -23,14 +22,12 @@ public class JpaMainTest {
     EntityManager em;
 
     @Autowired
-    UserRepository userRepository;
-
-    @Autowired
     TeamRepository teamRepository;
 
-    @Rollback(value = false)
     @BeforeEach
     void init() {
+        Address address = new Address("광주", "광역시");
+
         Team team1 = new Team();
         Team team2 = new Team();
         team1.setName("team1");
@@ -39,34 +36,63 @@ public class JpaMainTest {
         em.persist(team1);
         em.persist(team2);
 
-        Member hyunin = Member.builder()
+        Member member1 = Member.builder()
                 .name("member1")
                 .team(team1)
+                .homeAddress(address)
                 .build();
 
-        Member insun = Member.builder()
+        Member member2 = Member.builder()
                 .name("member2")
                 .team(team1)
+                .homeAddress(address)
                 .build();
 
-        Member gihong = Member.builder()
+        Member member3 = Member.builder()
                 .name("member3")
                 .team(team2)
                 .build();
 
-        Member unseo = Member.builder()
+        Member member4 = Member.builder()
                 .name("member4")
                 .team(team2)
                 .build();
 
-        em.persist(hyunin);
-        em.persist(insun);
+        em.persist(member1);
+        em.persist(member2);
 
-        em.persist(gihong);
-        em.persist(unseo);
+        em.persist(member3);
+        em.persist(member4);
 
         em.flush();
         em.clear();
+    }
+
+    @Rollback(value = false)
+    @Transactional
+    @Test
+    void embeddableTest() {
+
+    }
+    @DisplayName("parent 생성 시 childrent도 생성되는 지")
+    @Transactional
+    @Rollback(value = false)
+    @Test
+    void cascade_test() {
+        Parent parent = new Parent();
+        parent.setName("엄마");
+        parent.addChild(new Child());
+        parent.addChild(new Child());
+
+        em.persist(parent);
+
+        em.flush();
+        em.clear();
+
+        Parent parent1 = em.find(Parent.class, parent.getId());
+
+        System.out.println("parent1 = " + parent1);
+        System.out.println("parent1.children = " + parent1.getChildren());
     }
 
     @Transactional

@@ -20,6 +20,5 @@ public class Team {
     private String name;
 
     @OneToMany
-    @JoinColumn(name = "TEAM_ID", insertable = false, updatable = false)
     private List<Member> members = new ArrayList<>();
 }
